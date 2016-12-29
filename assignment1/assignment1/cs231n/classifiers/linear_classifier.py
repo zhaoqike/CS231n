@@ -38,6 +38,16 @@ class LinearClassifier(object):
       X_batch = None
       y_batch = None
 
+      idx = np.random.choice(num_train, batch_size, replace=True)
+
+      X_batch = X.take(idx, axis=0)
+      y_batch = y.take(idx)
+
+      print 'shape', X.shape
+      print 'shape', y.shape
+      print 'shape', X_batch.shape
+      print 'shape', y_batch.shape
+
       #########################################################################
       # TODO:                                                                 #
       # Sample batch_size elements from the training data and their           #
@@ -57,6 +67,8 @@ class LinearClassifier(object):
       # evaluate loss and gradient
       loss, grad = self.loss(X_batch, y_batch, reg)
       loss_history.append(loss)
+
+      self.W -= learning_rate * grad
 
       # perform parameter update
       #########################################################################
@@ -87,6 +99,11 @@ class LinearClassifier(object):
       class.
     """
     y_pred = np.zeros(X.shape[1])
+
+    num_train = X.shape[0]
+    num_classes = self.W.shape[1]
+    scores = X.dot(self.W)
+    y_pred = np.argmax(scores, axis=1)
     ###########################################################################
     # TODO:                                                                   #
     # Implement this method. Store the predicted labels in y_pred.            #
