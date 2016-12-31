@@ -157,24 +157,26 @@ input_dim = X_train_feats.shape[1]
 hidden_dim = 500
 num_classes = 10
 
-net = TwoLayerNet(input_dim, hidden_dim, num_classes)
+best_val = -1
 best_net = None
 
 
-learning_rates = [1e-9, 1e-8, 1e-7]
-regularization_strengths = [1e5, 1e6, 1e7]
+learning_rates = [1e-9, 1e-7]
+regularization_strengths = [1e-8, 1e-7]
 
 
-iters = 3
+iters = 100
 lr = np.random.random_sample((iters,))
 rg = np.random.random_sample((iters,))
 
-lr = (learning_rates[2]-learning_rates[0])*lr+learning_rates[0]
-rg = (regularization_strengths[2]-regularization_strengths[0])*rg+regularization_strengths[0]
+lr = (learning_rates[1]-learning_rates[0])*lr+learning_rates[0]
+rg = (regularization_strengths[1]-regularization_strengths[0])*rg+regularization_strengths[0]
+
+results = {}
+
 
 for iter in range(0, iters):
-  print 'iter', iter
-  net = TwoLayerNet()
+  net = TwoLayerNet(input_dim, hidden_dim, num_classes)
 
   stats = net.train(X_train_feats, y_train, X_val_feats, y_val,
                     learning_rate=lr[iter], reg=rg[iter],
@@ -186,8 +188,12 @@ for iter in range(0, iters):
   vp = np.mean(y_val == y_val_pred)
   results[(lr[iter], rg[iter])] = (tp, vp)
 
+  print 'iter', iter, tp, vp, best_val
+
   if vp > best_val:
-    best_svm = net
+    best_val = vp
+    best_net = net
+    print 'best val now', best_val
 
 
 
@@ -201,9 +207,22 @@ pass
 #                              END OF YOUR CODE                                #
 ################################################################################
 
+# Print out results.
+for lr, reg in sorted(results):
+    train_accuracy, val_accuracy = results[(lr, reg)]
+    print 'lr %e reg %e train accuracy: %f val accuracy: %f' % (
+        lr, reg, train_accuracy, val_accuracy)
 
 # Run your neural net classifier on the test set. You should be able to
 # get more than 55% accuracy.
 
-test_acc = (net.predict(X_test_feats) == y_test).mean()
+test_acc = (best_net.predict(X_test_feats) == y_test).mean()
 print test_acc
+
+
+y_train_pred = best_net.predict(X_train_feats)
+tp = np.mean(y_train == y_train_pred)
+y_val_pred = best_net.predict(X_val_feats)
+vp = np.mean(y_val == y_val_pred)
+print 'tp, vp', tp, vp
+print 'best val', best_val
